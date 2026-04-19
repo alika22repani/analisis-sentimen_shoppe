@@ -4,4 +4,3 @@ numpy
 scikit-learn
 wordcloud
 matplotlib
-tensorflow==2.12.0
