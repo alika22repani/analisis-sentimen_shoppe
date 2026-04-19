@@ -1,0 +1,8 @@
+streamlit
+pandas
+numpy
+tensorflow
+scikit-learn
+wordcloud
+matplotlib
+google-play-scraper
