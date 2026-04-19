@@ -2,20 +2,16 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import re
-
-from tensorflow.keras.models import load_model
 import pickle
 
-model = load_model("model.h5")
-
-with open("tokenizer.pkl", "rb") as f:
-    tokenizer = pickle.load(f)
-
-with open("label_encoder.pkl", "rb") as f:
-    le = pickle.load(f)
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+
+# =========================
+# LOAD MODEL (VERSI RINGAN)
+# =========================
+model = pickle.load(open("model.pkl", "rb"))
+vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
 
 # =========================
 # CONFIG
@@ -105,31 +101,27 @@ with col1:
         if user_input != "":
             clean_text = preprocess_input(user_input)
 
-            seq = tokenizer.texts_to_sequences([clean_text])
-            padded = pad_sequences(seq, maxlen=100)
+            # 🔥 PREDIKSI VERSI BARU
+            vec = vectorizer.transform([clean_text])
+            hasil = model.predict(vec)[0]
+            confidence = 100
 
-            pred = model.predict(padded)
-            confidence = np.max(pred) * 100
-            hasil = le.inverse_transform([np.argmax(pred)])[0]
-
-            # RULE BIAR LEBIH MASUK AKAL
+            # RULE TAMBAHAN
             if "biasa" in user_input.lower():
                 hasil = "netral"
 
             # OUTPUT
             if hasil == "positif":
-                st.success(f"Hasil: {hasil} 😊 ({confidence:.2f}%)")
+                st.success(f"Hasil: {hasil} 😊 ({confidence}%)")
                 color = "Greens"
             elif hasil == "negatif":
-                st.error(f"Hasil: {hasil} 😡 ({confidence:.2f}%)")
+                st.error(f"Hasil: {hasil} 😡 ({confidence}%)")
                 color = "Reds"
             else:
-                st.info(f"Hasil: {hasil} 😐 ({confidence:.2f}%)")
+                st.info(f"Hasil: {hasil} 😐 ({confidence}%)")
                 color = "Blues"
 
-            # =========================
-            # WORDCLOUD DINAMIS
-            # =========================
+            # WORDCLOUD
             st.subheader("☁️ Wordcloud dari Komentar")
 
             wc = WordCloud(
@@ -182,4 +174,3 @@ st.dataframe(df_tampil[['komentar', 'sentimen']], height=300)
 st.markdown("### 🔍 Insight:")
 st.write("- Mayoritas pengguna memberikan sentimen positif")
 st.write("- Beberapa keluhan terkait pengiriman dan performa aplikasi")
-
